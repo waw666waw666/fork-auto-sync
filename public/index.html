@@ -131,8 +131,10 @@
       text-align: center !important;
       letter-spacing: 0.5px !important;
     }
+    html.modal-open,
     body.modal-open {
       overflow: hidden !important;
+      height: 100% !important;
       overscroll-behavior: none !important;
     }
     .modal-backdrop {
@@ -687,6 +689,7 @@
 
     // 模态弹窗底层滚动锁，防止背景穿透滚动
     function lockBodyScroll() {
+      document.documentElement.classList.add('modal-open');
       document.body.classList.add('modal-open');
     }
 
@@ -696,6 +699,7 @@
       const isSettingsOpen = settingsModal && !settingsModal.classList.contains('hidden');
       const isConsoleOpen = consoleModal && !consoleModal.classList.contains('hidden');
       if (!isSettingsOpen && !isConsoleOpen) {
+        document.documentElement.classList.remove('modal-open');
         document.body.classList.remove('modal-open');
       }
     }
@@ -1797,6 +1801,23 @@
       document.getElementById('sync-console-modal').addEventListener('click', (e) => {
         if (e.target.id === 'sync-console-modal') {
           closeConsoleModal();
+        }
+      });
+
+      // 阻止弹窗区域非内部滚动列表的滚轮与触摸穿透到背景页面
+      ['settings-modal', 'sync-console-modal'].forEach(id => {
+        const modalEl = document.getElementById(id);
+        if (modalEl) {
+          modalEl.addEventListener('wheel', (e) => {
+            if (!e.target.closest('#settings-repo-list, #sync-console-body')) {
+              e.preventDefault();
+            }
+          }, { passive: false });
+          modalEl.addEventListener('touchmove', (e) => {
+            if (!e.target.closest('#settings-repo-list, #sync-console-body')) {
+              e.preventDefault();
+            }
+          }, { passive: false });
         }
       });
 
